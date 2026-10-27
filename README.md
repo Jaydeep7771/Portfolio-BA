@@ -1,4 +1,4 @@
-# Juveriyah — Portfolio
+#  — Portfolio
 
 A portfolio site for a Business Analyst / Product Analyst / AI automation engineer.
 Next.js 15 (App Router), TypeScript, Tailwind CSS v4, Framer Motion, Radix primitives,
