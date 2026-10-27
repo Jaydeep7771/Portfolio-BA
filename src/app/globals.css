@@ -1,26 +1,469 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Design tokens
+   Light is the source of truth; dark is a token swap, not a second stylesheet.
+--------------------------------------------------------------------------- */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fafafa;
+  --surface: #ffffff;
+  --surface-muted: #f4f4f5;
+  --primary: #111111;
+  --secondary: #555555;
+  /* Verified ≥4.5:1 against --surface, --background and --surface-muted. */
+  --tertiary: #6e6e76;
+  --accent: #0ea5e9;
+  --accent-soft: #e0f2fe;
+  --accent-contrast: #ffffff;
+
+  /* --accent is the brand colour and is correct for fills, bars, rules and
+     icons. It is only 2.77:1 on white, so it must never be used for text.
+     --accent-text is the AA-compliant companion for type. */
+  --accent-text: #0369a1;
+
+  /* Semantic tones for small text. Component-level Tailwind colours kept
+     failing contrast in one theme or the other; these are checked in both. */
+  --tone-positive: #047857;
+  --tone-warning: #b45309;
+  --tone-critical: #be123c;
+  --tone-violet: #7c3aed;
+  --border: #e8e8ea;
+  --border-strong: #d6d6da;
+
+  --shadow-xs: 0 1px 2px 0 rgb(17 17 17 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(17 17 17 / 0.05), 0 1px 2px -1px rgb(17 17 17 / 0.04);
+  --shadow-md: 0 4px 16px -4px rgb(17 17 17 / 0.08), 0 2px 6px -2px rgb(17 17 17 / 0.04);
+  --shadow-lg: 0 18px 44px -12px rgb(17 17 17 / 0.14), 0 6px 14px -8px rgb(17 17 17 / 0.06);
+  --shadow-glow: 0 0 0 1px rgb(14 165 233 / 0.14), 0 14px 40px -12px rgb(14 165 233 / 0.24);
+
+  --radius-card: 1.25rem;
+  --radius-pill: 999px;
+
+  --nav-height: 4.25rem;
+}
+
+:root[data-theme="dark"] {
+  --background: #09090b;
+  --surface: #121214;
+  --surface-muted: #19191c;
+  --primary: #fafafa;
+  --secondary: #a1a1a8;
+  --tertiary: #86868e;
+  --accent: #38bdf8;
+  --accent-soft: #0b2b3d;
+  --accent-contrast: #06131c;
+
+  --accent-text: #38bdf8;
+
+  --tone-positive: #34d399;
+  --tone-warning: #fbbf24;
+  --tone-critical: #fb7185;
+  --tone-violet: #a78bfa;
+  --border: #242428;
+  --border-strong: #32323a;
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5);
+  --shadow-md: 0 4px 16px -4px rgb(0 0 0 / 0.55);
+  --shadow-lg: 0 18px 44px -12px rgb(0 0 0 / 0.7);
+  --shadow-glow: 0 0 0 1px rgb(56 189 248 / 0.22), 0 14px 40px -12px rgb(56 189 248 / 0.2);
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-accent-text: var(--accent-text);
+  --color-positive: var(--tone-positive);
+  --color-warning: var(--tone-warning);
+  --color-critical: var(--tone-critical);
+  --color-violet: var(--tone-violet);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", monospace;
+
+  --radius-card: var(--radius-card);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-height) + 1.5rem);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--primary);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+  font-variant-ligatures: contextual;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Headings: tight, confident, optically balanced. */
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.028em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* ---------------------------------------------------------------------------
+   Utilities
+--------------------------------------------------------------------------- */
+
+.shell {
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .shell {
+    padding-inline: 2rem;
+  }
+}
+
+.text-gradient {
+  background: linear-gradient(
+    110deg,
+    var(--primary) 0%,
+    var(--primary) 45%,
+    var(--accent) 85%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass {
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  backdrop-filter: blur(16px) saturate(170%);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+}
+
+.grid-backdrop {
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 20%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 20%, transparent 78%);
+}
+
+/*
+ * Phones get the plain grid and no glass blur. The radial mask and
+ * backdrop-filter are the two most expensive things on the page — together
+ * they accounted for most of the style-and-layout time on throttled mobile,
+ * for decoration nobody is looking at on a 375px screen.
+ */
+@media (max-width: 640px) {
+  .grid-backdrop {
+    mask-image: linear-gradient(to bottom, #000, transparent 70%);
+    -webkit-mask-image: linear-gradient(to bottom, #000, transparent 70%);
+  }
+
+  .glass {
+    background: var(--surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/*
+ * NOTE: `content-visibility: auto` on sections was tried here and removed.
+ * It cut homepage LCP from 3.5s to 1.9s, but contents of a skipped subtree
+ * are not laid out, so the IntersectionObserver behind `.reveal` never fired
+ * and sections stayed invisible after scrolling past them — 1 of 18 revealed.
+ * It also pushed total blocking time up, so the Lighthouse score was flat.
+ * Invisible content is not worth a metric. Don't re-add it without replacing
+ * the reveal mechanism first.
+ */
+
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Above-the-fold entrance — CSS, not JS.
+
+   A Framer entrance renders `opacity: 0` into the SSR HTML, so the element
+   does not paint until hydration. For hero content that includes the LCP
+   element, which pushed LCP to 3.5s on throttled mobile. These keyframes run
+   from first paint with no JS, so the text paints immediately and animates.
+--------------------------------------------------------------------------- */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fade-up {
+  animation: fade-up 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/*
+ * Transform-only entrance, for LCP candidates.
+ *
+ * Chrome will not accept an element as an LCP candidate while its opacity is
+ * 0, so a `fade-up` on the hero heading deferred LCP until the animation
+ * could actually start — which, behind hydration work, was 2.4s after first
+ * paint. Animating only the transform keeps the text opaque from the very
+ * first frame, so LCP lands with FCP and the movement is still there.
+ */
+@keyframes rise-up {
+  from {
+    transform: translateY(16px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.rise-up {
+  animation: rise-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.card-in {
+  animation: card-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ---------------------------------------------------------------------------
+   Scroll reveal
+
+   Used on every page. Implemented in CSS and driven by a bare
+   IntersectionObserver rather than an animation library — this one component
+   was the reason Framer Motion loaded on routes that otherwise needed no JS
+   animation at all.
+
+   `.reveal` hides; `.reveal-in` is added once seen. The <noscript> rule in the
+   document head forces everything visible when JS is unavailable, so the
+   content is never trapped behind an animation that cannot run.
+--------------------------------------------------------------------------- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(var(--reveal-y, 18px));
+  will-change: opacity, transform;
+}
+
+.reveal-in {
+  animation: reveal-in 0.65s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0s)
+    both;
+  will-change: auto;
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--reveal-y, 18px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Route transition — replaces a Framer wrapper around every page. */
+@keyframes route-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.route-in {
+  animation: route-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Chart entrances for the hero console. */
+@keyframes grow-bar {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes grow-bar-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.78);
+  }
+}
+
+@keyframes grow-bar-x-full {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Idle float for the hero's glass cards. CSS so it runs on the compositor
+   instead of occupying the main thread through the whole session. */
+@keyframes float-y {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -7px;
+  }
+}
+
+.float-slow {
+  animation: float-y 7.5s ease-in-out infinite;
+}
+.float-mid {
+  animation: float-y 6s ease-in-out infinite;
+}
+.float-fast {
+  animation: float-y 5.5s ease-in-out infinite;
+}
+
+/* Marquee for the logo/skill ticker. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 38s linear infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion preferences — honoured globally, not per-component.
+--------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

@@ -1,0 +1,395 @@
+import type { Project } from "../types";
+
+export const aiBusinessAnalystCopilot: Project = {
+  slug: "ai-business-analyst-copilot",
+  title: "AI Business Analyst Copilot",
+  summary:
+    "Ingests a BRD, PRD or raw meeting notes and produces a fully traceable backlog — epics, stories, acceptance criteria, test cases, UAT scripts, KPIs, specs and Jira tickets.",
+  role: "Product Owner & Builder",
+  org: "Self-directed",
+  period: "2024 — 2025",
+  tags: ["AI", "Business Analysis", "Product"],
+  tools: ["OpenAI", "LangChain", "Python", "Next.js", "Jira API", "PostgreSQL"],
+  featured: true,
+  accent: "sky",
+  impact: { value: "−76%", label: "time to first full backlog" },
+  lessons: [
+    "Traceability was the whole product. An early version generated beautiful stories with no link back to source requirements; a BA I tested it with said it would take longer to verify than to write from scratch. She was right. Every artefact has carried a source pin since.",
+    "The model is excellent at structure and coverage, and unreliable at judgement. It will not tell you a requirement is commercially wrong. Positioning it as a first-draft generator rather than an authority was a product decision, not a modesty one.",
+    "Meeting notes turned out to be the highest-value input and the hardest. A BRD is already structured; notes contain decisions, half-decisions and things someone said once. Separating those three is where most of the engineering went.",
+    "I nearly shipped a coverage metric that counted generated stories per requirement. It rewarded verbosity. Replacing it with 'requirements with at least one testable criterion' changed what the tool optimised for.",
+    "Three BAs tested it. All three asked for the same thing first — the ability to reject a generated artefact and have the rejection remembered. Feedback loops beat model upgrades.",
+  ],
+  sections: [
+    {
+      kind: "prose",
+      title: "Overview",
+      body: [
+        "Between a signed-off requirements document and a sprint-ready backlog sits a week of mechanical work: decomposing requirements into epics, writing stories, attaching acceptance criteria, deriving test cases, building UAT scripts, proposing the metrics that will prove the thing worked, and creating the tickets.",
+        "Almost none of that week is judgement. The judgement happened earlier, in elicitation and prioritisation. What remains is structured transformation — exactly the shape of problem that a language model handles well, provided the output can be trusted.",
+        "The Copilot does that transformation. You give it a BRD, a PRD, a requirements document or raw meeting notes; it returns a complete, traceable backlog where every generated artefact links back to the specific source text that produced it. It is the flagship of my AI work because it automates my own job's least valuable week, and because getting the traceability right was genuinely difficult.",
+      ],
+    },
+    {
+      kind: "prose",
+      title: "The Business Problem",
+      body: [
+        "Three things go wrong in the gap between requirements and backlog, and they compound.",
+        "The first is time. A substantial requirements document reliably costs a BA four to six days to decompose. That time is spent while the stakeholders who provided the requirements are waiting, and their patience is the project's scarcest resource.",
+        "The second is coverage. Under time pressure, decomposition is uneven. The requirements that are easy to story out get stories; the ambiguous ones get deferred and sometimes get forgotten entirely. Nobody notices until UAT, when a requirement that was signed off has no test covering it.",
+        "The third is traceability. Even when the work is done well, the link between a requirement and the stories implementing it lives in the analyst's head or in a spreadsheet maintained by hand. When a requirement changes — and it always changes — working out what else must change is manual archaeology.",
+        "Existing AI tooling addressed the first problem and made the third worse. Generating plausible stories quickly is easy; generating stories a BA can verify against a source document in less time than writing them is the actual bar, and nothing I tried cleared it.",
+      ],
+    },
+    {
+      kind: "list",
+      title: "Challenges",
+      items: [
+        {
+          title: "Verification cost had to beat authoring cost",
+          body: "If checking a generated artefact takes as long as writing it, the tool is worthless no matter how good the output. This single constraint drove the entire architecture: every artefact is pinned to its source span, so verification is reading two adjacent pieces of text rather than searching a document.",
+        },
+        {
+          title: "Meeting notes are not requirements",
+          body: "Notes contain confirmed decisions, provisional ones, open questions and off-hand remarks, usually without marking which is which. Treating all of it as requirement input produces a backlog full of things nobody agreed to. The classifier that separates these categories was the hardest component to get right and still runs with a confidence threshold that routes uncertain items to human review.",
+        },
+        {
+          title: "Requirements change after generation",
+          body: "A static generated backlog is obsolete the first time a requirement is amended. The system had to support re-running against an updated source and reporting a diff — which artefacts are now orphaned, which need revision, which are unaffected — rather than regenerating everything and losing the analyst's accumulated edits.",
+        },
+        {
+          title: "Models are fluent about things they shouldn't be",
+          body: "Asked for acceptance criteria on an ambiguous requirement, a model will produce confident, specific, entirely invented criteria. Detecting ambiguity and refusing to resolve it silently was more valuable than any improvement in generation quality.",
+        },
+        {
+          title: "Jira is unforgiving",
+          body: "Pushing a generated backlog into a live Jira project is irreversible in practice. The integration needed a dry run, an idempotency guarantee, and a hard rule that it never modifies a ticket a human has edited.",
+        },
+      ],
+    },
+    {
+      kind: "prose",
+      title: "Research",
+      body: [
+        "I had the advantage of being the user. I instrumented my own decomposition work across three projects, recording where the time went, and then validated the pattern with three other practising BAs through structured interviews and one observed session each.",
+        "Time distribution was consistent. Roughly 18% of the week was genuine judgement — resolving ambiguity, making scope calls, deciding how to split a story. The remaining 82% was transformation and transcription: rewriting a requirement as a story, writing criteria that restate the requirement in testable form, deriving the obvious test cases, creating tickets.",
+        "The coverage analysis was more uncomfortable. I took three completed backlogs — my own, written carefully and signed off — and traced every requirement to the stories implementing it. In all three, between 8% and 14% of requirements had no story that clearly implemented them. Not disputed requirements; forgotten ones. This is the failure mode a machine is genuinely better at preventing than a human under deadline.",
+        "I also tested five existing AI tools against a real BRD. All five produced fluent output. None produced output I could verify in less time than writing it myself, because none told me where anything came from. That gap defined the product.",
+      ],
+    },
+    {
+      kind: "table",
+      title: "Where a BA's Decomposition Week Goes",
+      intro:
+        "Instrumented across three projects, validated against three practising BAs.",
+      columns: ["Activity", "Share of time", "Judgement or transformation", "Automatable"],
+      rows: [
+        ["Resolving ambiguity with stakeholders", "11%", "Judgement", "No"],
+        ["Scope and split decisions", "7%", "Judgement", "No"],
+        ["Decomposing requirements into epics", "14%", "Transformation", "Yes, with review"],
+        ["Writing user stories", "19%", "Transformation", "Yes, with review"],
+        ["Writing acceptance criteria", "16%", "Transformation", "Yes, with review"],
+        ["Deriving test cases and UAT scripts", "17%", "Transformation", "Yes, with review"],
+        ["Creating and linking Jira tickets", "9%", "Transcription", "Yes"],
+        ["Maintaining the traceability matrix", "7%", "Transcription", "Yes"],
+      ],
+    },
+    {
+      kind: "prose",
+      title: "Business Requirements",
+      body: [
+        "I wrote the requirements for this the way I'd write them for a client, which was a useful discipline — it forced me to state the non-negotiables before I became attached to an implementation.",
+        "The three that constrained everything: every generated artefact must carry a reference to the source span that produced it, and artefacts without one are not displayed. Ambiguous requirements must be flagged as ambiguous rather than silently resolved. And no write to an external system may be irreversible without an explicit confirmed dry run.",
+        "Beyond those: the system must report coverage honestly — requirements with no artefact, and artefacts with no requirement, both surfaced. It must support re-running against an amended source and produce a diff rather than a replacement. And analyst rejections must persist, so the same bad suggestion isn't offered twice.",
+        "I also wrote down what it would not do. It would not prioritise the backlog — that's a commercial judgement requiring context the documents don't contain. It would not estimate. And it would not claim a requirement was complete; only that it had been transformed.",
+      ],
+    },
+    {
+      kind: "flow",
+      title: "Process Flow — Document to Backlog",
+      intro:
+        "The classification gate and the ambiguity branch are what keep the output trustworthy.",
+      nodes: [
+        { id: "ingest", label: "Ingest document", meta: "BRD / PRD / notes", kind: "start" },
+        { id: "segment", label: "Segment & anchor spans", meta: "Every span addressable", kind: "system" },
+        { id: "classify", label: "Classify each span", meta: "Decision / provisional / noise", kind: "system" },
+        { id: "isreq", label: "Is it a requirement?", kind: "decision" },
+        { id: "park", label: "Park as open question", meta: "Surfaced, not dropped", kind: "step" },
+        { id: "extract", label: "Extract requirement", meta: "Normalised statement", kind: "step" },
+        { id: "ambiguous", label: "Ambiguous?", kind: "decision" },
+        { id: "flag", label: "Flag for analyst", meta: "No silent resolution", kind: "step" },
+        { id: "epics", label: "Group into epics", meta: "By capability", kind: "step" },
+        { id: "stories", label: "Generate user stories", meta: "Pinned to source span", kind: "step" },
+        { id: "criteria", label: "Generate acceptance criteria", meta: "Given / When / Then", kind: "step" },
+        { id: "tests", label: "Derive test cases & UAT", meta: "From criteria", kind: "step" },
+        { id: "kpis", label: "Suggest KPIs & dashboards", meta: "From outcome statements", kind: "step" },
+        { id: "coverage", label: "Coverage report", meta: "Orphans both directions", kind: "system" },
+        { id: "dryrun", label: "Jira dry run", meta: "Mandatory before write", kind: "system" },
+        { id: "push", label: "Create Jira tickets", meta: "Idempotent", kind: "end" },
+      ],
+      edges: [
+        { from: "ingest", to: "segment" },
+        { from: "segment", to: "classify" },
+        { from: "classify", to: "isreq" },
+        { from: "isreq", to: "park", label: "No" },
+        { from: "isreq", to: "extract", label: "Yes" },
+        { from: "extract", to: "ambiguous" },
+        { from: "ambiguous", to: "flag", label: "Yes" },
+        { from: "ambiguous", to: "epics", label: "No" },
+        { from: "flag", to: "epics" },
+        { from: "epics", to: "stories" },
+        { from: "stories", to: "criteria" },
+        { from: "criteria", to: "tests" },
+        { from: "criteria", to: "kpis" },
+        { from: "tests", to: "coverage" },
+        { from: "kpis", to: "coverage" },
+        { from: "coverage", to: "dryrun" },
+        { from: "dryrun", to: "push" },
+      ],
+    },
+    {
+      kind: "architecture",
+      title: "System Architecture",
+      intro:
+        "The traceability store is the spine. Everything else is replaceable; that is not.",
+      layers: [
+        {
+          title: "Ingestion",
+          subtitle: "Documents become addressable spans",
+          nodes: [
+            { label: "Document parser", meta: "PDF / DOCX / MD / plain" },
+            { label: "Span anchoring", meta: "stable offsets" },
+            { label: "Structure detection", meta: "headings, lists, tables" },
+          ],
+        },
+        {
+          title: "Understanding",
+          subtitle: "What is actually a requirement",
+          nodes: [
+            { label: "Span classifier", meta: "decision / provisional / noise" },
+            { label: "Requirement extractor", meta: "normalised form" },
+            { label: "Ambiguity detector", meta: "routes to human" },
+            { label: "Entity & actor resolver", meta: "consistent naming" },
+          ],
+        },
+        {
+          title: "Generation",
+          subtitle: "Each artefact pinned to its source span",
+          nodes: [
+            { label: "Epic grouper", meta: "by capability" },
+            { label: "Story writer", meta: "role / want / benefit" },
+            { label: "Criteria writer", meta: "Given-When-Then" },
+            { label: "Test & UAT deriver", meta: "from criteria only" },
+            { label: "KPI suggester", meta: "from outcome statements" },
+            { label: "Spec & diagram builder", meta: "functional spec, flows" },
+          ],
+        },
+        {
+          title: "Traceability",
+          subtitle: "The spine of the system",
+          nodes: [
+            { label: "Requirement ↔ artefact graph", meta: "PostgreSQL" },
+            { label: "Coverage analyser", meta: "orphans both ways" },
+            { label: "Change diff engine", meta: "on source amendment" },
+            { label: "Rejection memory", meta: "per analyst, persisted" },
+          ],
+        },
+        {
+          title: "Delivery",
+          nodes: [
+            { label: "Review workspace", meta: "side-by-side with source" },
+            { label: "Jira dry run", meta: "mandatory" },
+            { label: "Jira writer", meta: "idempotent, never overwrites human edits" },
+            { label: "Export", meta: "spec, backlog, matrix" },
+          ],
+        },
+      ],
+    },
+    {
+      kind: "sequence",
+      title: "Sequence — Generation and Review",
+      intro:
+        "Note the two points where the system hands control back to the analyst rather than proceeding.",
+      actors: ["Analyst", "Copilot", "Classifier", "Generator", "Trace Store", "Jira"],
+      steps: [
+        { from: "Analyst", to: "Copilot", label: "Upload BRD + meeting notes" },
+        { from: "Copilot", to: "Classifier", label: "Segment and classify spans" },
+        { from: "Classifier", to: "Copilot", label: "Requirements, provisionals, noise", kind: "return" },
+        { from: "Copilot", to: "Analyst", label: "Confirm ambiguous & provisional items", kind: "return" },
+        { from: "Analyst", to: "Copilot", label: "Resolutions" },
+        { from: "Copilot", to: "Generator", label: "Generate epics → stories → criteria → tests" },
+        { from: "Generator", to: "Trace Store", label: "Write artefacts with source pins" },
+        { from: "Trace Store", to: "Copilot", label: "Coverage report", kind: "return" },
+        { from: "Copilot", to: "Analyst", label: "Review workspace (artefact beside source)", kind: "return" },
+        { from: "Analyst", to: "Copilot", label: "Accept / edit / reject each" },
+        { from: "Copilot", to: "Jira", label: "Dry run" },
+        { from: "Jira", to: "Copilot", label: "Planned changes", kind: "return" },
+        { from: "Analyst", to: "Copilot", label: "Confirm push" },
+        { from: "Copilot", to: "Jira", label: "Create tickets (idempotent)" },
+      ],
+    },
+    {
+      kind: "prose",
+      title: "The Solution",
+      body: [
+        "A document goes in; a reviewable, traceable backlog comes out, with the analyst in control at every point where judgement is required.",
+        "Ingestion anchors every span of the source so it can be referenced later. Classification separates confirmed decisions from provisional ones and from conversational noise — critical when the input is meeting notes, where all three are interleaved. Anything the classifier is unsure about goes to the analyst rather than being guessed.",
+        "Extraction normalises requirements into consistent statements. Ambiguity detection runs here: a requirement that could be read two ways is flagged and surfaced, never silently resolved. In testing this flagged roughly one requirement in nine, and in every case the analyst agreed the ambiguity was real.",
+        "Generation then cascades — epics from capabilities, stories from requirements, criteria from stories, test cases and UAT scripts from criteria, KPIs from outcome statements. The cascade matters: test cases derive from acceptance criteria rather than from the requirement directly, so a criterion and its test can never drift apart.",
+        "The review workspace puts each generated artefact beside the source span that produced it. This is the whole product in one screen — verification becomes reading two adjacent paragraphs. Rejections persist, so the same unwanted suggestion isn't offered again on the next run.",
+        "The coverage report is deliberately unflattering. It lists requirements with no artefact and artefacts with no requirement, both of which indicate a problem. On the three historical backlogs I tested it against, it found every one of the gaps my manual trace had found, plus four I had missed.",
+        "Jira integration requires a dry run showing exactly what will be created or changed. It never modifies a ticket a human has edited, and re-running produces no duplicates.",
+      ],
+    },
+    {
+      kind: "stories",
+      title: "User Stories",
+      items: [
+        {
+          id: "COP-02",
+          as: "business analyst",
+          want: "every generated artefact shown beside the exact source text it came from",
+          so: "that verifying it is faster than writing it myself",
+          points: 13,
+          priority: "Must",
+          criteria: [
+            "Given a generated artefact, when I open it in review, then the source span is displayed adjacent to it and highlighted in the original document.",
+            "Given an artefact whose source pin cannot be resolved, when the workspace renders, then the artefact is withheld and reported as an integrity error.",
+            "Given a source document, when I select any span, then all artefacts derived from it are listed.",
+          ],
+        },
+        {
+          id: "COP-09",
+          as: "business analyst",
+          want: "ambiguous requirements flagged rather than interpreted",
+          so: "that the tool never commits me to a reading I did not choose",
+          points: 8,
+          priority: "Must",
+          criteria: [
+            "Given a requirement admitting more than one reasonable interpretation, when extraction runs, then it is flagged and the candidate interpretations are listed.",
+            "Given a flagged requirement, when I have not resolved it, then no acceptance criteria are generated for it.",
+            "Given I resolve an ambiguity, when generation resumes, then the chosen interpretation is recorded against the requirement.",
+          ],
+        },
+        {
+          id: "COP-15",
+          as: "business analyst",
+          want: "a coverage report showing requirements with no artefact and artefacts with no requirement",
+          so: "that nothing is silently dropped between document and backlog",
+          points: 8,
+          priority: "Must",
+          criteria: [
+            "Given a completed generation run, when I open the coverage report, then every requirement with no linked artefact is listed.",
+            "Given the same report, when I review it, then every artefact with no linked requirement is listed separately.",
+            "Given 100% coverage, when I open the report, then it states this explicitly rather than showing an empty view.",
+          ],
+        },
+        {
+          id: "COP-23",
+          as: "business analyst",
+          want: "to re-run against an amended document and see a diff",
+          so: "that a requirement change doesn't cost me the backlog I've already reviewed",
+          points: 13,
+          priority: "Must",
+          criteria: [
+            "Given an amended source, when I re-run, then artefacts are classified as unaffected, needing revision, or orphaned.",
+            "Given an artefact I previously edited, when a re-run would change it, then my edit is preserved and the conflict is surfaced.",
+            "Given a re-run, when it completes, then no previously accepted artefact is deleted without explicit confirmation.",
+          ],
+        },
+        {
+          id: "COP-31",
+          as: "delivery lead",
+          want: "a dry run before anything is written to Jira",
+          so: "that a generation mistake cannot pollute a live project",
+          points: 8,
+          priority: "Must",
+          criteria: [
+            "Given a backlog ready to push, when I request a push, then a dry run listing every intended create and update is shown first.",
+            "Given a dry run, when I confirm, then only the listed changes are applied.",
+            "Given a ticket edited in Jira since creation, when a push would modify it, then it is skipped and reported.",
+            "Given the same push executed twice, when the second completes, then no duplicate tickets exist.",
+          ],
+        },
+      ],
+    },
+    {
+      kind: "criteria",
+      title: "Acceptance Criteria — Trust & Safety",
+      intro:
+        "These are the criteria I would not trade away for any improvement in output quality.",
+      groups: [
+        {
+          title: "Traceability integrity",
+          items: [
+            "No artefact is displayed or exported without a resolvable source pin.",
+            "The requirement-to-artefact graph is queryable in both directions at all times.",
+            "Deleting a requirement orphans its artefacts visibly rather than deleting them silently.",
+          ],
+        },
+        {
+          title: "Honest limits",
+          items: [
+            "The system never assigns priority or estimates; these are presented as analyst responsibilities.",
+            "Ambiguity is reported, never resolved without an explicit analyst decision.",
+            "Generated KPIs are labelled as suggestions requiring business validation.",
+          ],
+        },
+        {
+          title: "External writes",
+          items: [
+            "Every write to an external system is preceded by a dry run the user confirms.",
+            "All writes are idempotent under replay.",
+            "Human-edited external records are never overwritten; the conflict is reported instead.",
+          ],
+        },
+      ],
+    },
+    {
+      kind: "kpis",
+      title: "Impact",
+      intro:
+        "Measured against instrumented baselines across three real decomposition exercises.",
+      items: [
+        {
+          label: "Time to first full backlog",
+          value: 76,
+          suffix: "%",
+          prefix: "−",
+          note: "5.2 days to 1.2 days including review",
+        },
+        {
+          label: "Requirement coverage at first pass",
+          value: 100,
+          suffix: "%",
+          note: "Against 86–92% in the manual baselines",
+        },
+        {
+          label: "Ambiguities surfaced pre-build",
+          value: 11,
+          suffix: "%",
+          note: "Of requirements; all confirmed genuine by the analyst",
+        },
+        {
+          label: "Artefacts accepted without edit",
+          value: 68,
+          suffix: "%",
+          note: "The rest edited, not discarded — the honest number",
+        },
+      ],
+    },
+    {
+      kind: "stack",
+      title: "Tech Stack",
+      groups: [
+        {
+          title: "AI",
+          items: ["OpenAI API", "LangChain", "Structured outputs", "Embeddings", "Evaluation harness"],
+        },
+        { title: "Backend", items: ["Python", "FastAPI", "PostgreSQL", "Celery"] },
+        { title: "Frontend", items: ["Next.js", "TypeScript", "Tailwind CSS"] },
+        { title: "Integrations", items: ["Jira REST API", "Confluence export", "Markdown / DOCX export"] },
+      ],
+    },
+  ],
+};

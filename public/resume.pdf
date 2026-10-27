@@ -1,0 +1,38 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 485 >>
+stream
+BT /F1 26 Tf 60 760 Td (Juveriyah) Tj ET
+BT /F1 12 Tf 60 724 Td (Business Analyst  |  Product Analyst  |  AI Workflow Automation) Tj ET
+BT /F1 14 Tf 60 682 Td (PLACEHOLDER RESUME) Tj ET
+BT /F1 11 Tf 60 638 Td (Replace this file with the real resume PDF.) Tj ET
+BT /F1 11 Tf 60 617 Td (Path: /public/resume.pdf) Tj ET
+BT /F1 11 Tf 60 576 Td (The structured version of this resume is rendered on the) Tj ET
+BT /F1 11 Tf 60 555 Td (site at /resume, sourced from src/data/resume.ts) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000776 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+846
+%%EOF
